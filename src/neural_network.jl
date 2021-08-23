@@ -75,4 +75,18 @@ for i ∈ 1:60000
     end
 end
 
+mkpath("src/params")
+println("saving weights")
+for (i, weight) in enumerate(weights)
+    npzwrite("src/params/weight$(i).npy", weight)
+end
+println("saved weights")
+
+
+println("saving biases")
+for (i, bias) in enumerate(biases)
+    npzwrite("src/params/bias$(i).npy", bias)
+end
+println("saved biases")
+
 end

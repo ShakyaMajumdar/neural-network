@@ -51,6 +51,7 @@ function train(image, label)
             )
             for k ∈ 1:neuron_counts[L-1]
         ]
+        # update weights and biases at this layer
         biases[L] .+= -η * delc_delb
         weights[L] .+= -η * delc_delw
     end

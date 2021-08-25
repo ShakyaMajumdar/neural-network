@@ -8,7 +8,8 @@ The images and labels have been parsed to a more convenient format:
 
 
 The formulae used in the backpropagation algorithm are:
-1. 
+
+1.
 ![dcdw](./images/dcdw.png)
 This gives us the partial derivative of the cost function with respect to the weight of the edge from the kth neuron in the previous layer to the jth neuron in the current layer.
 

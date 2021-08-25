@@ -31,14 +31,9 @@ function train(image, label)
 
     # backpropagation
     target = [i == label ? 1. : 0. for i ∈ 0:9]
-    printstyled(
-          "predict: $(prediction[2] - 1), " *
-          "actual: $(label), " *
-          "confidence(actual): $(layers[end][label + 1]), " *
-          "confidence(predict): $(prediction[1]), " *
-          "\n",
-          color=(label==prediction[2]-1 ? (:green) : (:red))
-    )
+
+    @debug "" predict = (prediction[2] - 1) actual=label confidence_actual=layers[end][label + 1] confidence_predict=prediction[1]
+
     delc_dela = 2 .* (layers[end] .- target)
     for L ∈ length(neuron_counts):-1:2
         delc_delw = map(Iterators.product(1:neuron_counts[L], 1:neuron_counts[L-1])) do (j, k)
@@ -62,31 +57,31 @@ function train(image, label)
 end
 
 
-println("start reading training data")
+@info "start reading training data"
 trainingimages = npzread("dataset/training_images.npy")
 traininglabels = parse.(Int, readlines(open("dataset/training_labels.txt")))
-println("stop reading")
+@info "stop reading"
 
 
 for i ∈ 1:60000
     train(trainingimages[i, :], traininglabels[i])
     if i % 600 == 0
-        println("$(i / 600)%")
+        @info "$(i / 600)%"
     end
 end
 
 mkpath("src/params")
-println("saving weights")
+@info "saving weights"
 for (i, weight) in enumerate(weights)
     npzwrite("src/params/weight$(i).npy", weight)
 end
-println("saved weights")
+@info "saved weights"
 
 
-println("saving biases")
+@info "saving biases"
 for (i, bias) in enumerate(biases)
     npzwrite("src/params/bias$(i).npy", bias)
 end
-println("saved biases")
+@info "saved biases"
 
 end

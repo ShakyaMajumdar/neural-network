@@ -13,7 +13,7 @@ weights = [0., [
 biases = [0., [rand(neuron_count) .* 20 .- 10 for neuron_count ∈ neuron_counts[2:end]]...]
 
 σ(x::AbstractFloat) = 1 / (1 + exp(-x))
-σ_prime(y::AbstractFloat) = y * (1 - y)
+σ_prime(y::AbstractFloat) = 0.25 # y * (1 - y)
 
 η = 0.05 # learning rate
 

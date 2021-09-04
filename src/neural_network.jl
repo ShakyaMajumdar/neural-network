@@ -93,13 +93,13 @@ Save the weights and biases of the network on the disk.
 function save_params(network::NeuralNetwork)
     mkpath("src/params")
     @info "saving weights"
-    for (i, weight) in enumerate(weights)
+    for (i, weight) in enumerate(network.weights)
         npzwrite("src/params/weight$(i).npy", weight)
     end
     @info "saved weights"
 
     @info "saving biases"
-    for (i, bias) in enumerate(biases)
+    for (i, bias) in enumerate(network.biases)
         npzwrite("src/params/bias$(i).npy", bias)
     end
     @info "saved biases"

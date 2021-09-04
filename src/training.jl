@@ -20,6 +20,8 @@ function run_training_set()
         end
     end
 
+    save_params(network)
+
 end
 
 run_training_set()

@@ -2,87 +2,121 @@ module neural_network
 
 using NPZ
 
-neuron_counts = [784, 30, 16, 10]
-
-layers = [Vector{Float64}(undef, neuron_count) for neuron_count ∈ neuron_counts]
-
-weights = [0., [
-    (rand(Float64, (next_layer_neuron_count, prev_layer_neuron_count)) .* 10) .- 5
-    for (next_layer_neuron_count, prev_layer_neuron_count) ∈ zip(neuron_counts[2:end], neuron_counts)
-]...]
-biases = [0., [rand(neuron_count) .* 20 .- 10 for neuron_count ∈ neuron_counts[2:end]]...]
-
 σ(x::AbstractFloat) = 1 / (1 + exp(-x))
 σ_prime(y::AbstractFloat) = 0.25 # y * (1 - y)
 
-η = 0.05 # learning rate
+struct NeuralNetwork
+    neuron_counts::Vector{Int}
+    weights::Vector{Matrix}
+    biases::Vector{Vector}
+    layers::Vector{Vector}
+end
 
-function train(image, label)
-    # input layer
-    layers[1] .= image
+@doc """
+Construct a neural network with the provided neuron counts, weights and biases.
+"""
+NeuralNetwork(neuron_counts::Vector{Int}, weights::Vector{Matrix{Float64}}, biases::Vector{Vector{Float64}}) = NeuralNetwork(
+    neuron_counts,
+    weights,
+    biases,
+    [Vector{Float64}(undef, neuron_count) for neuron_count ∈ neuron_counts]
+)
 
-    # feed forward
-    for i ∈ 2:length(neuron_counts)
-        layers[i] .= σ.((weights[i] * layers[i - 1]) .+ biases[i])
+@doc """
+Construct a neural network with random weights and biases.
+"""
+NeuralNetwork(neuron_counts::Vector{Int}) = NeuralNetwork(
+    neuron_counts,
+    [
+        Array{Float64}(undef, 0, 0),
+        [
+            (rand(Float64, (next_layer_neuron_count, prev_layer_neuron_count)) .* 10) .- 5
+            for (next_layer_neuron_count, prev_layer_neuron_count) ∈ zip(neuron_counts[2:end], neuron_counts)
+        ]...
+    ],
+    [
+        Array{Float64}(undef, 0),
+        [rand(neuron_count) .* 20 .- 10 for neuron_count ∈ neuron_counts[2:end]]...
+    ]
+)
+
+
+@doc """
+Construct a neural network from params stored in the provided directory path.
+"""
+NeuralNetwork(neuron_counts::Vector{Int}, directory::String) = NeuralNetwork(
+    neuron_counts,
+    [npzread("$(directory)/weight$(i).npy") for i in 1:length(neuron_counts)],
+    [npzread("$(directory)/bias$(i).npy") for i in 1:length(neuron_counts)]
+)
+
+@doc """
+Run the neural network on the provided input image.
+"""
+function feed_forward!(network::NeuralNetwork, image::Vector{Float64})
+    network.layers[1] .= image
+    for i ∈ 2:length(network.neuron_counts)
+        network.layers[i] .= σ.((network.weights[i] * network.layers[i - 1]) .+ network.biases[i])
     end
+end
 
-    # prediction is output layer neuron with max activation
-    prediction = findmax(layers[end])
-
-    # backpropagation
-    target = [i == label ? 1. : 0. for i ∈ 0:9]
-
-    @debug "" predict = (prediction[2] - 1) actual=label confidence_actual=layers[end][label + 1] confidence_predict=prediction[1]
-
-    delc_dela = 2 .* (layers[end] .- target)
-    for L ∈ length(neuron_counts):-1:2
-        delc_delw = map(Iterators.product(1:neuron_counts[L], 1:neuron_counts[L-1])) do (j, k)
-            delc_dela[j] * σ_prime(layers[L][j]) * layers[L-1][k]
+@doc """
+Given a network run on some input, the target output for that input and the learning rate, backpropagate and rectify weights and biases.
+"""
+function back_propagate!(network::NeuralNetwork, target::Vector{Float64}, η::Float64)
+    delc_dela = 2 .* (network.layers[end] .- target)
+    for L ∈ length(network.neuron_counts):-1:2
+        delc_delw = map(Iterators.product(1:network.neuron_counts[L], 1:network.neuron_counts[L-1])) do (j, k)
+            delc_dela[j] * σ_prime(network.layers[L][j]) * network.layers[L-1][k]
         end
 
-        delc_delb = delc_dela .* σ_prime.(layers[L])
+        delc_delb = delc_dela .* σ_prime.(network.layers[L])
 
         delc_dela = [
             sum(
                 [
-                    weights[L][j, k] * σ_prime(layers[L][j]) * delc_dela[j]
-                    for j ∈ 1:neuron_counts[L]
+                    network.weights[L][j, k] * σ_prime(network.layers[L][j]) * delc_dela[j]
+                    for j ∈ 1:network.neuron_counts[L]
                 ]
             )
-            for k ∈ 1:neuron_counts[L-1]
+            for k ∈ 1:network.neuron_counts[L-1]
         ]
         # update weights and biases at this layer
-        biases[L] .+= -η * delc_delb
-        weights[L] .+= -η * delc_delw
+        network.biases[L] .+= -η * delc_delb
+        network.weights[L] .+= -η * delc_delw
     end
 end
 
-
-@info "start reading training data"
-trainingimages = npzread("dataset/training_images.npy")
-traininglabels = parse.(Int, readlines(open("dataset/training_labels.txt")))
-@info "stop reading"
-
-
-for i ∈ 1:60000
-    train(trainingimages[i, :], traininglabels[i])
-    if i % 600 == 0
-        @info "$(i / 600)%"
+@doc """
+Save the weights and biases of the network on the disk.
+"""
+function save_params(network::NeuralNetwork)
+    mkpath("src/params")
+    @info "saving weights"
+    for (i, weight) in enumerate(weights)
+        npzwrite("src/params/weight$(i).npy", weight)
     end
+    @info "saved weights"
+
+    @info "saving biases"
+    for (i, bias) in enumerate(biases)
+        npzwrite("src/params/bias$(i).npy", bias)
+    end
+    @info "saved biases"
 end
 
-mkpath("src/params")
-@info "saving weights"
-for (i, weight) in enumerate(weights)
-    npzwrite("src/params/weight$(i).npy", weight)
+@doc """
+Train the neural network with a single image and its label.
+"""
+function train!(network::NeuralNetwork, image::Vector{Float64}, label::Int, η::Float64 = 0.05)
+    feed_forward!(network, image)
+
+    prediction = findmax(network.layers[end])
+    @debug "" predict = (prediction[2] - 1) actual=label confidence_actual=network.layers[end][label + 1] confidence_predict=prediction[1]
+
+    target = [i == label ? 1. : 0. for i ∈ 0:9]
+    back_propagate!(network, target, η)
 end
-@info "saved weights"
 
-
-@info "saving biases"
-for (i, bias) in enumerate(biases)
-    npzwrite("src/params/bias$(i).npy", bias)
-end
-@info "saved biases"
-
+export NeuralNetwork, feed_forward!, back_propagate!, train!, save_params
 end

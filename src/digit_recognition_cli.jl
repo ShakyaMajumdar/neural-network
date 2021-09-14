@@ -29,7 +29,6 @@ function main()
     for (probability, label) ∈ predictions
         println("$(label): $(round(probability * 100, digits=2))%")
     end
-    print
 end
 
 main()

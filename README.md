@@ -1,5 +1,12 @@
 This is an implementation of a neural network to recognize handwritten decimal digits, made following [3Blue1Brown's playlist on YouTube](https://www.youtube.com/playlist?list=PLZHQObOWTQDNU6R1_67000Dx_ZCJB-3pi).
 
+# Usage
+```
+julia .\src\digit_recognition_cli.jl "path/to/image"
+```
+
+# How It Works
+
 It uses the [MNIST Database](http://yann.lecun.com/exdb/mnist/) for the training and testing datasets. 
 The images and labels have been parsed to a more convenient format:
  - The 60000 training images are stored in the form of a 60000 × 784 numpy array, each 784-length array representing the pixels of a 28 × 28 image.

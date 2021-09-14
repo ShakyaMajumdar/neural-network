@@ -17,6 +17,6 @@ function image_to_vector(filepath::String)
 
     # image within boundinx box is scaled to 20x20 and pasted in the center of the canvas
     canvas[5:24, 5:24] = imresize(inverted_bw[bounding_box.up:bounding_box.down, bounding_box.left:bounding_box.right], (20, 20))
-    return vec(Float64.(canvas))
+    return reduce(vcat, Float64.(canvas)')
 end
 end

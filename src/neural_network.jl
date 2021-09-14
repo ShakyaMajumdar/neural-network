@@ -3,7 +3,7 @@ module neural_network
 using NPZ
 
 σ(x::AbstractFloat) = 1 / (1 + exp(-x))
-σ_prime(y::AbstractFloat) = 0.25 # y * (1 - y)
+σ_prime(y::AbstractFloat) = 0.25 + y * (1 - y)
 
 struct NeuralNetwork
     neuron_counts::Vector{Int}

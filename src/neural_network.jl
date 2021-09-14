@@ -7,9 +7,9 @@ using NPZ
 
 struct NeuralNetwork
     neuron_counts::Vector{Int}
-    weights::Vector{Matrix}
-    biases::Vector{Vector}
-    layers::Vector{Vector}
+    weights::Vector{Matrix{Float64}}
+    biases::Vector{Vector{Float64}}
+    layers::Vector{Vector{Float64}}
 end
 
 @doc """
@@ -64,13 +64,13 @@ end
 Given a network run on some input, the target output for that input and the learning rate, backpropagate and rectify weights and biases.
 """
 function back_propagate!(network::NeuralNetwork, target::Vector{Float64}, η::Float64)
-    delc_dela = 2 .* (network.layers[end] .- target)
+    delc_dela::Vector{Float64} = 2 .* (network.layers[end] .- target)
     for L ∈ length(network.neuron_counts):-1:2
-        delc_delw = map(Iterators.product(1:network.neuron_counts[L], 1:network.neuron_counts[L-1])) do (j, k)
+        delc_delw::Matrix{Float64} = map(Iterators.product(1:network.neuron_counts[L], 1:network.neuron_counts[L-1])) do (j, k)
             delc_dela[j] * σ_prime(network.layers[L][j]) * network.layers[L-1][k]
         end
 
-        delc_delb = delc_dela .* σ_prime.(network.layers[L])
+        delc_delb::Vector{Float64} = delc_dela .* σ_prime.(network.layers[L])
 
         delc_dela = [
             sum(

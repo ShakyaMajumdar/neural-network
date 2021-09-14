@@ -7,11 +7,11 @@ Train the neural network on the entire training set.
 """
 function run_training_set()
     @info "start reading training data"
-    trainingimages = npzread("dataset/training_images.npy")
-    traininglabels = parse.(Int, readlines(open("dataset/training_labels.txt")))
+    trainingimages::Matrix{Float64} = npzread("dataset/training_images.npy")
+    traininglabels::Vector{Int} = parse.(Int, readlines(open("dataset/training_labels.txt")))
     @info "stop reading"
 
-    network = NeuralNetwork([784, 30, 16, 10])
+    network::NeuralNetwork = NeuralNetwork([784, 30, 16, 10])
 
     for i ∈ 1:60000
         train!(network, trainingimages[i, :], traininglabels[i])
@@ -24,4 +24,4 @@ function run_training_set()
 
 end
 
-run_training_set()
+@time run_training_set()

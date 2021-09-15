@@ -8,8 +8,8 @@ Test the neural network on the test set.
 """
 function run_test_set()
     @info "start reading test data"
-    testimages::Matrix{Float64} = npzread("dataset/training_images.npy")
-    testlabels::Vector{Int} = parse.(Int, readlines(open("dataset/training_labels.txt")))
+    testimages::Matrix{Float64} = npzread("dataset/test_images.npy")
+    testlabels::Vector{Int} = parse.(Int, readlines(open("dataset/test_labels.txt")))
     @info "stop reading"
 
     network::NeuralNetwork = NeuralNetwork([784, 200, 75, 10], "src/params")

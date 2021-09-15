@@ -9,8 +9,8 @@ julia .\src\digit_recognition_cli.jl "path/to/image"
 
 It uses the [MNIST Database](http://yann.lecun.com/exdb/mnist/) for the training and testing datasets. 
 The images and labels have been parsed to a more convenient format:
- - The 60000 training images are stored in the form of a 60000 × 784 numpy array, each 784-length array representing the pixels of a 28 × 28 image.
- - The 10000 testing images are stored in a similar 10000 × 784 array.
+ - The 60000 training images are stored in the form of a 784 × 60000 numpy array, each 784-length array representing the pixels of a 28 × 28 image.
+ - The 10000 testing images are stored in a similar 784 × 10000 array.
  - The training and testing labels are stored in plain text files, having 60000 and 10000 newline separated labels respectively.
 
 

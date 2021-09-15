@@ -1,4 +1,5 @@
 push!(LOAD_PATH, ".")
+using ProgressBars
 using NPZ
 using neural_network
 
@@ -13,15 +14,11 @@ function run_training_set()
 
     network::NeuralNetwork = NeuralNetwork([784, 200, 75, 10])
 
-    for i ∈ 1:60000
+    for i ∈ ProgressBar(1:60000)
         train!(network, trainingimages[i, :], traininglabels[i])
-        if i % 600 == 0
-            @info "$(i / 600)%"
-        end
     end
 
     save_params(network)
-
 end
 
 @time run_training_set()

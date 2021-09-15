@@ -1,4 +1,5 @@
 push!(LOAD_PATH, ".")
+using ProgressBars
 using NPZ
 using neural_network
 
@@ -14,24 +15,15 @@ function run_test_set()
     network = NeuralNetwork([784, 200, 75, 10], "src/params")
 
     total_correct = 0
-    for i ∈ 1:10000
-
+    iter = ProgressBar(1:10000)
+    for i ∈ iter
         feed_forward!(network, testimages[i, :])
         prediction = findmax(network.layers[end])
-        printstyled(
-            "predict: $(prediction[2] - 1), " *
-            "actual: $(testlabels[i]), " *
-            "confidence(actual): $(network.layers[end][testlabels[i] + 1]), " *
-            "confidence(predict): $(prediction[1]), " *
-            "\n",
-            color=(testlabels[i]==prediction[2]-1 ? (:green) : (:red))
-        )
-
         if prediction[2] - 1 == testlabels[i]
             total_correct += 1
         end
+        set_description(iter, "Total Correct: $(total_correct) / $(i), $(round(total_correct * 100 / i, digits=2))%")
     end
-    println("Total Correct: $(total_correct)/10000, $(total_correct / 100)%")
 end
 
 run_test_set()

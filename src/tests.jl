@@ -16,10 +16,10 @@ function run_test_set()
 
     total_correct = 0
     iter = ProgressBar(1:10000)
-    for i ∈ iter
-        feed_forward!(network, testimages[i, :])
-        prediction = findmax(network.layers[end])
-        if prediction[2] - 1 == testlabels[i]
+    for (i, image, label) ∈ zip(iter, eachcol(testimages), testlabels)
+        feed_forward!(network, image)
+        prediction = argmax(network.layers[end]) - 1
+        if prediction == label
             total_correct += 1
         end
         set_description(iter, "Total Correct: $(total_correct) / $(i), $(round(total_correct * 100 / i, digits=2))%")

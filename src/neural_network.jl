@@ -53,7 +53,7 @@ NeuralNetwork(neuron_counts::Vector{Int}, directory::String) = NeuralNetwork(
 @doc """
 Run the neural network on the provided input image.
 """
-function feed_forward!(network::NeuralNetwork, image::Vector{Float64})
+function feed_forward!(network::NeuralNetwork, image::AbstractVector{Float64})
     network.layers[1] .= image
     for i ∈ 2:length(network.neuron_counts)
         network.layers[i] .= σ.((network.weights[i] * network.layers[i - 1]) .+ network.biases[i])
@@ -108,7 +108,7 @@ end
 @doc """
 Train the neural network with a single image and its label.
 """
-function train!(network::NeuralNetwork, image::Vector{Float64}, label::Int, η::Float64 = 0.05)
+function train!(network::NeuralNetwork, image::AbstractVector{Float64}, label::Int, η::Float64 = 0.05)
     feed_forward!(network, image)
 
     prediction = findmax(network.layers[end])

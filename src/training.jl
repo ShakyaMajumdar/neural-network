@@ -14,8 +14,8 @@ function run_training_set()
 
     network::NeuralNetwork = NeuralNetwork([784, 200, 75, 10])
 
-    for i ∈ ProgressBar(1:60000)
-        train!(network, trainingimages[i, :], traininglabels[i])
+    for (i, image, label) ∈ zip(ProgressBar(1:60000), eachcol(trainingimages), traininglabels)
+        train!(network, image, label)
     end
 
     save_params(network)

@@ -11,7 +11,7 @@ function run_test_set()
     testlabels = parse.(Int, readlines(open("dataset/training_labels.txt")))
     @info "stop reading"
 
-    network = NeuralNetwork([784, 30, 16, 10], "src/params")
+    network = NeuralNetwork([784, 200, 75, 10], "src/params")
 
     total_correct = 0
     for i ∈ 1:10000

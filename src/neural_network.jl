@@ -55,7 +55,7 @@ Run the neural network on the provided input image.
 """
 function feed_forward!(network::NeuralNetwork, image::AbstractVector{Float64})
     network.layers[1] .= image
-    for i ∈ 2:length(network.neuron_counts)
+    @inbounds for i ∈ 2:length(network.neuron_counts)
         network.layers[i] .= σ.((network.weights[i] * network.layers[i - 1]) .+ network.biases[i])
     end
 end
@@ -65,22 +65,13 @@ Given a network run on some input, the target output for that input and the lear
 """
 function back_propagate!(network::NeuralNetwork, target::Vector{Float64}, η::Float64)
     delc_dela::Vector{Float64} = 2 .* (network.layers[end] .- target)
-    for L ∈ length(network.neuron_counts):-1:2
-        delc_delw::Matrix{Float64} = map(Iterators.product(1:network.neuron_counts[L], 1:network.neuron_counts[L-1])) do (j, k)
-            delc_dela[j] * σ_prime(network.layers[L][j]) * network.layers[L-1][k]
-        end
+    @inbounds for L ∈ length(network.neuron_counts):-1:2
+        delc_delz::Vector{Float64} = delc_dela .* σ_prime.(network.layers[L])
 
-        delc_delb::Vector{Float64} = delc_dela .* σ_prime.(network.layers[L])
+        delc_delw::Matrix{Float64} = [j * k for j ∈ delc_delz, k ∈ network.layers[L-1]]
+        delc_delb::Vector{Float64} = delc_delz
+        delc_dela = vec(sum((.*).(network.weights[L], delc_delz), dims=1))
 
-        delc_dela = [
-            sum(
-                [
-                    network.weights[L][j, k] * σ_prime(network.layers[L][j]) * delc_dela[j]
-                    for j ∈ 1:network.neuron_counts[L]
-                ]
-            )
-            for k ∈ 1:network.neuron_counts[L-1]
-        ]
         # update weights and biases at this layer
         network.biases[L] .+= -η * delc_delb
         network.weights[L] .+= -η * delc_delw

@@ -1,5 +1,6 @@
 module neural_network
 
+using LinearAlgebra
 using NPZ
 
 σ(x::AbstractFloat) = 1 / (1 + exp(-x))
@@ -70,7 +71,7 @@ function back_propagate!(network::NeuralNetwork, target::Vector{Float64}, η::Fl
 
         delc_delw::Matrix{Float64} = [j * k for j ∈ delc_delz, k ∈ network.layers[L-1]]
         delc_delb::Vector{Float64} = delc_delz
-        delc_dela = vec(sum((.*).(network.weights[L], delc_delz), dims=1))
+        delc_dela = eachcol(network.weights[L]) .⋅ Ref(delc_delz)
 
         # update weights and biases at this layer
         network.biases[L] .+= -η * delc_delb

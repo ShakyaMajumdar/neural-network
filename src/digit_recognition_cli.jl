@@ -22,7 +22,7 @@ function main()
     path = parsed_args["path"]
     image = image_to_vector(path)
 
-    network = NeuralNetwork([784, 200, 75, 10], "./src/params")
+    network = NeuralNetwork([784, 16, 16, 10], "./src/params")
     feed_forward!(network, image)
     total = sum(network.layers[end])
     predictions = sort([zip(network.layers[end] ./ total, 0:9)...], by = pair -> pair[1], rev = true)

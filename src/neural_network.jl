@@ -3,8 +3,8 @@ module neural_network
 using LinearAlgebra
 using NPZ
 
-σ(x::AbstractFloat) = 1 / (1 + exp(-x))
-σ_prime(y::AbstractFloat) = 0.25 + y * (1 - y)
+σ(x::Float64) = 1 / (1 + exp(-x))
+σ_prime(y::Float64) = y * (1 - y)
 
 struct NeuralNetwork
     neuron_counts::Vector{Int}
@@ -31,13 +31,13 @@ NeuralNetwork(neuron_counts::Vector{Int}) = NeuralNetwork(
     [
         Array{Float64}(undef, 0, 0),
         [
-            (rand(Float64, (next_layer_neuron_count, prev_layer_neuron_count)) .* 10) .- 5
+            (rand(Float64, (next_layer_neuron_count, prev_layer_neuron_count)) .* 2) .- 1
             for (next_layer_neuron_count, prev_layer_neuron_count) ∈ zip(neuron_counts[2:end], neuron_counts)
         ]...
     ],
     [
         Array{Float64}(undef, 0),
-        [rand(neuron_count) .* 20 .- 10 for neuron_count ∈ neuron_counts[2:end]]...
+        [rand(neuron_count) .* 2 .- 1 for neuron_count ∈ neuron_counts[2:end]]...
     ]
 )
 

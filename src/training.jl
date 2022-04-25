@@ -1,6 +1,7 @@
 push!(LOAD_PATH, ".")
 using ProgressBars
 using NPZ
+using Statistics
 using neural_network
 
 @doc """
@@ -13,9 +14,14 @@ function run_training_set()
     @info "stop reading"
 
     network::NeuralNetwork = NeuralNetwork([784, 16, 16, 10])
-
-    for (i, image, label) ∈ zip(ProgressBar(1:60000), eachcol(trainingimages), traininglabels)
-        train!(network, image, label)
+    losses = Float64[]
+    for i ∈ 1:20
+        for (j, image, label) ∈ zip(ProgressBar(1:60000), eachcol(trainingimages), traininglabels)
+            l = train!(network, image, label, 0.05)
+            push!(losses, l)
+        end
+        println("loss after $(i) epoch(s): $(mean(@view losses[end-100:end]))")
+        
     end
 
     save_params(network)

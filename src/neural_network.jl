@@ -109,6 +109,7 @@ function train!(network::NeuralNetwork, image::AbstractVector{Float64}, label::I
 
     target = [i == label ? 1. : 0. for i ∈ 0:9]
     back_propagate!(network, target, η)
+    return norm(target - network.layers[end])
 end
 
 export NeuralNetwork, feed_forward!, back_propagate!, train!, save_params

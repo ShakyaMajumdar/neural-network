@@ -12,7 +12,7 @@ function run_test_set()
     testlabels::Vector{Int} = parse.(Int, readlines(open("dataset/test_labels.txt")))
     @info "stop reading"
 
-    network::NeuralNetwork = NeuralNetwork([784, 200, 75, 10], "src/params")
+    network::NeuralNetwork = NeuralNetwork([784, 16, 16, 10], "src/params")
 
     total_correct = 0
     iter = ProgressBar(1:10000)

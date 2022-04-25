@@ -12,7 +12,7 @@ function run_training_set()
     traininglabels::Vector{Int} = parse.(Int, readlines(open("dataset/training_labels.txt")))
     @info "stop reading"
 
-    network::NeuralNetwork = NeuralNetwork([784, 200, 75, 10])
+    network::NeuralNetwork = NeuralNetwork([784, 16, 16, 10])
 
     for (i, image, label) ∈ zip(ProgressBar(1:60000), eachcol(trainingimages), traininglabels)
         train!(network, image, label)

@@ -11,6 +11,8 @@ struct NeuralNetwork
     weights::Vector{Matrix{Float64}}
     biases::Vector{Vector{Float64}}
     layers::Vector{Vector{Float64}}
+    
+    _dc_dz::Vector{Vector{Float64}}
 end
 
 @doc """
@@ -20,6 +22,7 @@ NeuralNetwork(neuron_counts::Vector{Int}, weights::Vector{Matrix{Float64}}, bias
     neuron_counts,
     weights,
     biases,
+    [Vector{Float64}(undef, neuron_count) for neuron_count ∈ neuron_counts],
     [Vector{Float64}(undef, neuron_count) for neuron_count ∈ neuron_counts]
 )
 
@@ -65,17 +68,15 @@ end
 Given a network run on some input, the target output for that input and the learning rate, backpropagate and rectify weights and biases.
 """
 function back_propagate!(network::NeuralNetwork, target::Vector{Float64}, η::Float64)
-    delc_dela::Vector{Float64} = 2 .* (network.layers[end] .- target)
+    network._dc_dz[end] .= 2 .* (network.layers[end] .- target) .* σ_prime.(network.layers[end])
     @inbounds for L ∈ length(network.neuron_counts):-1:2
-        delc_delz::Vector{Float64} = delc_dela .* σ_prime.(network.layers[L])
-
-        delc_delw::Matrix{Float64} = [j * k for j ∈ delc_delz, k ∈ network.layers[L-1]]
-        delc_delb::Vector{Float64} = delc_delz
-        delc_dela = network.weights[L]' * delc_delz
-
-        # update weights and biases at this layer
-        network.biases[L] .+= -η * delc_delb
-        network.weights[L] .+= -η * delc_delw
+        for c in 1:network.neuron_counts[L-1]
+            for r in 1:network.neuron_counts[L]
+                network.weights[L][r, c] += -η * network.layers[L-1][c] * network._dc_dz[L][r]
+            end
+        end
+        network.biases[L] .+= -η * network._dc_dz[L]
+        network._dc_dz[L-1] .= network.weights[L]' * network._dc_dz[L] .* σ_prime.(network.layers[L-1])
     end
 end
 

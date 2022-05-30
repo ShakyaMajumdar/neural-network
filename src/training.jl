@@ -13,18 +13,18 @@ function run_training_set()
     traininglabels::Vector{Int} = parse.(Int, readlines(open("dataset/training_labels.txt")))
     @info "stop reading"
 
-    network::NeuralNetwork = NeuralNetwork([784, 16, 16, 10])
+    trainer::Trainer = Trainer(NeuralNetwork([784, 16, 16, 10]))
     losses = Float64[]
-    for i ∈ 1:20
+    for i ∈ 1:5
         for (j, image, label) ∈ zip(ProgressBar(1:60000), eachcol(trainingimages), traininglabels)
-            l = train!(network, image, label, 0.05)
+            l = train!(trainer, image, label, 0.05)
             push!(losses, l)
         end
         println("loss after $(i) epoch(s): $(mean(@view losses[end-100:end]))")
         
     end
 
-    save_params(network)
+    save_params(trainer.network)
 end
 
 @time run_training_set()

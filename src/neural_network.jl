@@ -11,8 +11,6 @@ struct NeuralNetwork
     weights::Vector{Matrix{Float64}}
     biases::Vector{Vector{Float64}}
     layers::Vector{Vector{Float64}}
-    
-    _dc_dz::Vector{Vector{Float64}}
 end
 
 @doc """
@@ -23,7 +21,6 @@ NeuralNetwork(neuron_counts::Vector{Int}, weights::Vector{Matrix{Float64}}, bias
     weights,
     biases,
     [Vector{Float64}(undef, neuron_count) for neuron_count ∈ neuron_counts],
-    [Vector{Float64}(undef, neuron_count) for neuron_count ∈ neuron_counts]
 )
 
 @doc """
@@ -44,7 +41,6 @@ NeuralNetwork(neuron_counts::Vector{Int}) = NeuralNetwork(
     ]
 )
 
-
 @doc """
 Construct a neural network from params stored in the provided directory path.
 """
@@ -53,6 +49,13 @@ NeuralNetwork(neuron_counts::Vector{Int}, directory::String) = NeuralNetwork(
     [npzread("$(directory)/weight$(i).npy") for i in 1:length(neuron_counts)],
     [npzread("$(directory)/bias$(i).npy") for i in 1:length(neuron_counts)]
 )
+
+struct Trainer
+    network::NeuralNetwork
+    dc_dz::Vector{Vector{Float64}}
+end
+
+Trainer(network::NeuralNetwork) = Trainer(network, [Vector{Float64}(undef, neuron_count) for neuron_count ∈ network.neuron_counts])
 
 @doc """
 Run the neural network on the provided input image.
@@ -67,16 +70,17 @@ end
 @doc """
 Given a network run on some input, the target output for that input and the learning rate, backpropagate and rectify weights and biases.
 """
-function back_propagate!(network::NeuralNetwork, target::Vector{Float64}, η::Float64)
-    network._dc_dz[end] .= 2 .* (network.layers[end] .- target) .* σ_prime.(network.layers[end])
+function back_propagate!(trainer::Trainer, target::Vector{Float64}, η::Float64)
+    network = trainer.network
+    trainer.dc_dz[end] .= 2 .* (network.layers[end] .- target) .* σ_prime.(network.layers[end])
     @inbounds for L ∈ length(network.neuron_counts):-1:2
         for c in 1:network.neuron_counts[L-1]
             for r in 1:network.neuron_counts[L]
-                network.weights[L][r, c] += -η * network.layers[L-1][c] * network._dc_dz[L][r]
+                network.weights[L][r, c] += -η * network.layers[L-1][c] * trainer.dc_dz[L][r]
             end
         end
-        network.biases[L] .+= -η * network._dc_dz[L]
-        network._dc_dz[L-1] .= network.weights[L]' * network._dc_dz[L] .* σ_prime.(network.layers[L-1])
+        network.biases[L] .+= -η * trainer.dc_dz[L]
+        trainer.dc_dz[L-1] .= network.weights[L]' * trainer.dc_dz[L] .* σ_prime.(network.layers[L-1])
     end
 end
 
@@ -101,16 +105,17 @@ end
 @doc """
 Train the neural network with a single image and its label.
 """
-function train!(network::NeuralNetwork, image::AbstractVector{Float64}, label::Int, η::Float64 = 0.05)
+function train!(trainer::Trainer, image::AbstractVector{Float64}, label::Int, η::Float64 = 0.05)
+    network = trainer.network
     feed_forward!(network, image)
 
-    prediction = findmax(network.layers[end])
+    prediction = findmax(trainer.network.layers[end])
     @debug "" predict = (prediction[2] - 1) actual=label confidence_actual=network.layers[end][label + 1] confidence_predict=prediction[1]
 
     target = [i == label ? 1. : 0. for i ∈ 0:9]
-    back_propagate!(network, target, η)
+    back_propagate!(trainer, target, η)
     return norm(target - network.layers[end])
 end
 
-export NeuralNetwork, feed_forward!, back_propagate!, train!, save_params
+export NeuralNetwork, Trainer, feed_forward!, back_propagate!, train!, save_params
 end

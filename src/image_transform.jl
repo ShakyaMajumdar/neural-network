@@ -30,7 +30,6 @@ function image_to_vector(filepath::String)
             |> dilate,
         (rescaled_height, rescaled_width)
     )
-
-    return reduce(vcat, Float64.(canvas)')
+    return reshape(Float64.(canvas)', (prod(canvas_dims), 1))
 end
 end

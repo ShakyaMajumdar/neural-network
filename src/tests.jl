@@ -16,9 +16,11 @@ function run_test_set()
 
     total_correct = 0
     iter = ProgressBar(1:10000)
-    for (i, image, label) ∈ zip(iter, eachcol(testimages), testlabels)
+    for i ∈ iter
+        image = testimages[:, i, :]
+        label = testlabels[i]
         feed_forward!(network, image)
-        prediction = argmax(network.layers[end]) - 1
+        prediction = argmax(network.layers[end])[1] - 1
         if prediction == label
             total_correct += 1
         end
